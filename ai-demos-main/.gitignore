@@ -1,5 +1,6 @@
-.env
-
+# .env
+# .venv/
+venv/
 /workbook
 __pycache__
 Purge_demos.ipynb
