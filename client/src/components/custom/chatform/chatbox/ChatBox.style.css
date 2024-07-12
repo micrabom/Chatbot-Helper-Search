@@ -1,0 +1,18 @@
+
+.chat-messages{
+    background-color: aqua;
+}
+
+.chat-message{
+    display: flex;
+    align-items: center;
+    align-content: center;
+} 
+
+.chat-message-left{
+    justify-content: left;
+}
+
+.chat-message-right{
+    justify-content: right;
+}

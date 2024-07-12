@@ -1,3 +1,9 @@
+# Local Virtual Environment
 /venv
 .venv
+
+# Environment variable
 .env
+
+# VSCode settings
+.vscode
