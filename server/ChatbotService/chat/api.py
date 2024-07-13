@@ -11,4 +11,4 @@ router = Router()
 @router.get("/chatbot_messages", response=list[ChatBotMessageSchema])
 def fetch_all_chatbot_messages(request):
     data = ChatBotMessages.objects.all()
-    return data
+    return list(data)
