@@ -1,47 +1,61 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bot, User } from "lucide-react";
+import { Bot, Loader, User } from "lucide-react";
 import "./ChatBox.style.css";
-import { useQuery } from "@tanstack/react-query";
-import { getChatMessages } from "@/services/chatbot/chatService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	getChatCoversations,
+	getChatMessages,
+	inputChatBotMessages,
+} from "@/services/chatbot/chatService";
 import { getUserGithub } from "@/services/github/githubService";
-
-const mockDataMessages = [
-	{
-		id: 3,
-		content: "How are you?",
-		type: "left",
-	},
-	{
-		id: 4,
-		content: "I'm doing well, thank you!",
-		type: "right",
-	},
-];
+import { useState } from "react";
+import { useHomeContext } from "@/app/home/utils/hooks/useHomeContext";
+import { InputMessages } from "./components/input-messages/InputMessages";
+import { Responses } from "./components/response-messages/Responses";
 
 export const ChatBox = () => {
-	const { data: chatMessagesData } = useQuery({
-		queryKey: ["chatMessages"],
-		queryFn: async () => await getChatMessages(),
-	});
-	const { data: githubData } = useQuery({
-		queryKey: ["xxxxxxxxxxxxxxxx"],
-		queryFn: async () => await getUserGithub("micrabom"),
+	const { formValue, inputMessage, onChangeInputMessage, setInputMessage } =
+		useHomeContext();
+	const queryClient = useQueryClient();
+
+	const { data: chatConversationsData } = useQuery({
+		queryKey: ["chatConversations"],
+		queryFn: async () => await getChatCoversations(),
 	});
 
-	console.log(githubData);
-	console.log(chatMessagesData?.data);
+	const { mutate: _handleInputMessage, isPending: loadingInput } =
+		useMutation({
+			mutationKey: ["inputMessage"],
+			mutationFn: async () => await inputChatBotMessages(inputMessage),
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: ["chatConversations"],
+				});
+				setInputMessage({
+					content: "",
+				});
+			},
+		});
+
+	const handleInputMessage = () => {
+		_handleInputMessage();
+	};
+
 	return (
 		<>
 			<div className="container ">
-				<h1 className="text-2xl">Chatbot</h1>
-				<p className="mb-2 text-muted-foreground">
-					Welcome to the chatbot interface
+				<h1 className="text-2xl">SearchBot</h1>
+				<p className="text-xs mb-2 text-muted-foreground">
+					Welcome to SearchBot, your intelligent and intuitive chatbot
+					designed to make searching effortless and efficient. Whether
+					you need quick answers or in-depth information, SearchBot
+					Pro is here to assist you with precision and speed.
 				</p>
 				<div className="chat-container flex flex-col content-between ">
 					<div className="bg-gray-300 p-2 h-[30rem] overflow-y-auto">
-						{chatMessagesData &&
-							chatMessagesData?.data?.map(
+						{chatConversationsData &&
+							chatConversationsData?.data?.map(
 								(message: any, index: any) => {
 									return (
 										<div
@@ -52,23 +66,45 @@ export const ChatBox = () => {
 													: "left"
 											}`}
 										>
-											<div className="flex justify-center items-center my-1">
-												{message.message_type ===
-													"response" && <Bot />}
-												<h4 className="text-sm ml-1  bg-slate-200 p-1">
-													{message.content}
-												</h4>
-												{message.message_type ===
-													"input" && <User />}
-											</div>
+											{message.message_type ===
+												"input" && (
+												<InputMessages
+													conversationId={message.id}
+												/>
+											)}
+											{message.message_type ===
+												"response" && (
+												<Responses
+													conversationId={message.id}
+												/>
+											)}
 										</div>
 									);
 								}
 							)}
 					</div>
 					<div className="chat-input my-1 flex">
-						<Input type="text" placeholder="Type a message" />
-						<Button className="ml-1">Send</Button>
+						<Input
+							onChange={onChangeInputMessage}
+							type="text"
+							placeholder="Type a message"
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									handleInputMessage();
+								}
+							}}
+						/>
+						<Button
+							disabled={loadingInput}
+							onClick={handleInputMessage}
+							className="ml-1 w-60"
+						>
+							{loadingInput ? (
+								<Loader className="animate-spin" />
+							) : (
+								"Search"
+							)}
+						</Button>
 					</div>
 				</div>
 			</div>
