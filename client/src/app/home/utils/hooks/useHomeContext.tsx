@@ -1,7 +1,10 @@
 "use client";
 
 import { useContext } from "react";
-import { HomeContext } from "../../context/HomeContextProvider";
+import {
+	HomeContext,
+	type HomeContextType,
+} from "../../context/HomeContextProvider";
 
 export const useHomeContext = () => {
 	const value = useContext(HomeContext);
